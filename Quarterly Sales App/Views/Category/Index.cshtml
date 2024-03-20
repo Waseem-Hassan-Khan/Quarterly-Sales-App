@@ -1,29 +1,5 @@
 ﻿@model List<Sales>
 
-
-    <style>
-    
-    .form-select {
-        font-size: 1rem;
-        padding: .200rem .200rem; 
-        border: 1px solid #ced4da; 
-        border-radius: .25rem;
-        color: #495057; 
-        background-color: #fff; 
-        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; 
-    }
-
-        
-        .form-select:focus {
-            border-color: #80bdff; 
-            outline: 0; 
-            box-shadow: 0 0 0 .25rem rgba(0,123,255,.25); 
-        }
-
-    </style>
-
-
-
 <div class="container">
     <div class="row pt-4 pb-3">
         <div class="col-6">
@@ -32,67 +8,123 @@
             </h2>
         </div>
 
-
-
         <div class="col-6 text-end">
             <div class="d-flex align-items-center">
                 <select id="manager" class="form-select" style="width: 150px;">
-                    <option value="">Select Manager</option>
+                    <option value="">All Sales</option>
                     @foreach (var manager in ViewBag.Managers)
                     {
                         <option value="@manager.Id">@manager.FullName</option>
                     }
                 </select>
 
-                <a asp-controller="Category" asp-action="Create" class="btn btn-primary ms-2">
+                <select id="yrs" class="form-select ms-2" style="width: 150px;">
+                    <option value="0">All Years</option> 
+                    @foreach (var year in ViewBag.DistinctYears)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+
+                <select id="qtrs" class="form-select ms-2" style="width: 150px;">
+                    <option value="0">All Quarters</option> 
+                    @foreach (var quarter in ViewBag.QuarterList)
+                    {
+                        <option value="@quarter">@quarter</option>
+                    }
+                </select>
+
+
+                <button id="filterBtn" class="btn btn-primary ms-2">
                     <i class="bi bi-plus-circle-dotted"></i> Filter
-                </a>
+                </button>
             </div>
         </div>
-
-
     </div>
 </div>
 
-<table class="table table-bordered table-striped">
-    <tr>
-        <th>
-            Year
-        </th>
-        <th>
-            Quarter
-        </th>
-        <th>
-            Employee
-        </th>
-        <th>
-            Amount
-        </th>
-    </tr>
- <tbody>
-        @foreach(var obj in Model.OrderBy(display=>display.Id))
-        {
-            <tr>
-                <td>
-                    @obj.Year
-                </td>
-                <td>
-                    @obj.Quarter
-                </td>
-                <td>
-                    @obj.EmployeeName
-                </td>
-                <td>
-                    @obj.Amount
-                </td>
-                
-            </tr>
-        }
+<table id="salesTable" class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Year</th>
+            <th>Quarter</th>
+            <th>Employee</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
     </tbody>
 </table>
+
 
 
      @section Scripts{
      @{
         <partial name="_ValidationScriptsPartial" />
-      }}
+      }
+
+    <script>
+        $(document).ready(function () {
+
+            // var table = $('#salesTable').DataTable({
+            //     paging: true
+            // });
+
+
+            function loadAllRecords() {
+
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/Category/Filter',
+                    data: { managerName: '' },
+                    success: function (response) {
+                        console.log('All records loaded successfully!');
+                        console.log('Response:', response);
+
+                        $('#salesTable tbody').empty();
+                        $.each(response, function (index, obj) {
+                            $('#salesTable tbody').append('<tr><td>' + obj.year + '</td><td>' + obj.quarter + '</td><td>' + obj.employeeName + '</td><td>' + obj.amount + '</td></tr>');
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            }
+
+            loadAllRecords();
+
+            $('#filterBtn').click(function () {
+                var selectedManagerName = $('#manager').val();
+                var selectedYear = $('#yrs').val();
+                var selectedQuarter = $('#qtrs').val();
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/Category/Filter',
+                    data: {
+                        managerName: selectedManagerName,
+                        year: selectedYear,
+                        quarter: selectedQuarter
+                    },
+                    success: function (response) {
+                        console.log('Data sent successfully!');
+                        console.log('Response:', response);
+
+                        $('#salesTable tbody').empty();
+                        $.each(response, function (index, obj) {
+                            $('#salesTable tbody').append('<tr><td>' + obj.year + '</td><td>' + obj.quarter + '</td><td>' + obj.employeeName + '</td><td>' + obj.amount + '</td></tr>');
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+
+        });
+    </script>
+
+     }

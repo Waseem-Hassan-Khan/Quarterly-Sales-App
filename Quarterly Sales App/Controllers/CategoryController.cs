@@ -3,6 +3,7 @@ using Quarterly_Sales_App.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quarterly_Sales_App.ViewModel;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Quarterly_Sales_App.Controllers
 {
@@ -14,8 +15,6 @@ namespace Quarterly_Sales_App.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            List<Sales> sales = await _context.Sales.ToListAsync();
-
             var employees = await _context.employees.ToListAsync();
             var managers = employees.Select(e => new ManagersDropDown
             {
@@ -25,7 +24,44 @@ namespace Quarterly_Sales_App.Controllers
 
             ViewBag.Managers = managers;
 
-            return View(sales);
+            var distinctValues = await _context.Sales
+                                .Select(x => x.Year)
+                                .Distinct()
+                                .OrderByDescending(year => year)
+                                .ToListAsync();
+            ViewBag.DistinctYears = distinctValues;
+
+            var QuarterList = await _context.Sales
+                              .Select (x => x.Quarter)
+                              .Distinct()
+                              .OrderByDescending(quarter => quarter)
+                              .ToListAsync();
+            ViewBag.QuarterList = QuarterList;
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Filter(string? managerName, int? year, int? quarter)
+        {
+            IQueryable<Sales> query = _context.Sales;
+
+            if (!managerName.IsNullOrEmpty())
+            {
+                query = query.Where(x => x.EmployeeName == managerName);
+            }
+
+            if (year.HasValue && year != 0)
+            {
+                query = query.Where(x => x.Year == year);
+            }
+            if (quarter.HasValue && quarter != 0) 
+            {
+                query = query.Where(x => x.Quarter == quarter);
+            }
+            var response = await query.ToListAsync();
+
+            return Json(response);
         }
 
         public async Task<IActionResult> Create()
