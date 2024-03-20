@@ -1,0 +1,98 @@
+﻿@model List<Sales>
+
+
+    <style>
+    
+    .form-select {
+        font-size: 1rem;
+        padding: .200rem .200rem; 
+        border: 1px solid #ced4da; 
+        border-radius: .25rem;
+        color: #495057; 
+        background-color: #fff; 
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; 
+    }
+
+        
+        .form-select:focus {
+            border-color: #80bdff; 
+            outline: 0; 
+            box-shadow: 0 0 0 .25rem rgba(0,123,255,.25); 
+        }
+
+    </style>
+
+
+
+<div class="container">
+    <div class="row pt-4 pb-3">
+        <div class="col-6">
+            <h2 class="text-primary">
+                Quarterly Sales
+            </h2>
+        </div>
+
+
+
+        <div class="col-6 text-end">
+            <div class="d-flex align-items-center">
+                <select id="manager" class="form-select" style="width: 150px;">
+                    <option value="">Select Manager</option>
+                    @foreach (var manager in ViewBag.Managers)
+                    {
+                        <option value="@manager.Id">@manager.FullName</option>
+                    }
+                </select>
+
+                <a asp-controller="Category" asp-action="Create" class="btn btn-primary ms-2">
+                    <i class="bi bi-plus-circle-dotted"></i> Filter
+                </a>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<table class="table table-bordered table-striped">
+    <tr>
+        <th>
+            Year
+        </th>
+        <th>
+            Quarter
+        </th>
+        <th>
+            Employee
+        </th>
+        <th>
+            Amount
+        </th>
+    </tr>
+ <tbody>
+        @foreach(var obj in Model.OrderBy(display=>display.Id))
+        {
+            <tr>
+                <td>
+                    @obj.Year
+                </td>
+                <td>
+                    @obj.Quarter
+                </td>
+                <td>
+                    @obj.EmployeeName
+                </td>
+                <td>
+                    @obj.Amount
+                </td>
+                
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+     @section Scripts{
+     @{
+        <partial name="_ValidationScriptsPartial" />
+      }}
